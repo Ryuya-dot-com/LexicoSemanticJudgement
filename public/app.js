@@ -17,6 +17,7 @@
   const label = answer => answer === 'appropriate' ? '適切' : '不適切';
 
   function screen(markup) {
+    app.dataset.screen = phase;
     app.innerHTML = markup;
     app.querySelector('h1, h2')?.focus({ preventScroll: true });
   }
@@ -56,30 +57,24 @@
   function welcome() {
     phase = 'welcome';
     active = false;
-    screen(`<p class="eyebrow">LISTEN · THINK · CHOOSE</p>
-      <h1 tabindex="-1">英語の意味、<br>どこまで聞き取れる？</h1>
-      <p class="lead">短い英文を聞いて、言葉の使い方が自然かどうかを選ぶテストです。</p>
-      <div class="facts"><span>本番 <strong>${config.items.length}問</strong></span><span>練習 <strong>4問</strong></span><span>時間制限なし</span></div>
-      <div class="guide"><h2>聞く。判断する。それだけ。</h2>
-        <p>文の中で、言葉が意味に合って使われていれば「適切」、合わなければ「不適切」を選びます。</p>
-        <p class="example"><b>適切な例</b> “I drink tea every morning.”<br><b>不適切な例</b> “I wear tea every morning.”</p>
-        <p>音声を最後まで聞いてから回答してください。静かな場所で、イヤホンやヘッドホンの使用をおすすめします。${config.items.length > 40 ? '80問目の後に休憩できます。' : ''}</p>
-      </div>
-      <button class="primary" id="start">音声を確認して始める <span aria-hidden="true">→</span></button>
-      <p class="small">名前・登録は不要です。回答と結果は外部へ送信せず、この画面でのみ扱います。ページを閉じたり再読み込みすると消えます。</p>
-      ${config.long ? '<p class="small">CEFRの参考目安は、Short版と共通する40問の得点から表示します。</p>' : ''}`);
+    screen(`<h1 tabindex="-1">Lexicosemantic Judgement Test (LJT)</h1>
+      <p>${config.long ? 'Long' : 'Short'}版 · 練習4問＋本番${config.items.length}問 · 時間制限なし</p>
+      <p>英文を聞き、言葉の使い方が適切か不適切かを選んでください。音声が終わってから、ボタンまたは F / J キーで回答できます。</p>
+      <p class="example">適切な例：I drink tea every morning.<br>不適切な例：I wear tea every morning.</p>
+      <p>イヤホン・ヘッドホンの使用をおすすめします。${config.long ? '80問目の後に休憩があります。' : ''}</p>
+      <button class="primary" id="start">始める</button>
+      <p class="small">名前・登録は不要です。回答と結果は送信・保存されません。ページを閉じたり再読み込みすると消えます。</p>`);
     $('start').onclick = soundCheck;
   }
 
   function soundCheck() {
     phase = 'sound';
-    screen(`<p class="eyebrow">GET READY</p><h2 tabindex="-1">音は聞こえますか？</h2>
-      <p class="lead">音量を調整して、英文がはっきり聞こえることを確認してください。</p>
-      <div class="listening" aria-hidden="true">♪</div>
+    screen(`<h2 tabindex="-1">音声の確認</h2>
+      <p>音量を調整して、英文が聞こえることを確認してください。</p>
       <p id="status" role="status">「音声を再生」を押してください。</p>
       <button class="secondary" id="check">音声を再生</button>
-      <button class="primary" id="practice" disabled>聞こえたので、練習へ →</button>
-      <p class="small">練習は4問です。練習中は、回答の後に正解が表示されます。</p>`);
+      <button class="primary" id="practice" disabled>練習へ進む</button>
+      <p class="small">練習4問では、回答後に正解が表示されます。</p>`);
     $('check').onclick = () => {
       busy = true;
       $('check').disabled = true;
@@ -87,7 +82,7 @@
       $('status').textContent = '再生しています…';
       play(config.practice[0].audio_path, () => {
         busy = false;
-        $('status').textContent = 'はっきり聞こえたら、練習へ進んでください。';
+        $('status').textContent = '聞こえたら、練習へ進んでください。';
         $('check').disabled = false;
         $('check').textContent = 'もう一度聞く';
         $('practice').disabled = false;
@@ -111,15 +106,12 @@
     accepting = false;
     busy = false;
     const total = phase === 'practice' ? config.practice.length : ordered.length;
-    screen(`<div class="progress-label"><span>${phase === 'practice' ? '練習' : '本番'}</span><span>${index + 1} / ${total}</span></div>
-      <progress value="${index}" max="${total}" aria-label="${phase === 'practice' ? '練習' : '本番'}の進み具合"></progress>
-      <div class="trial-content"><div class="listening" aria-hidden="true">♪</div>
-      <h2 tabindex="-1" id="prompt">英文を聞いてください</h2>
-      <p id="status" role="status">再生しています…</p></div>
+    screen(`<p class="trial-progress">${phase === 'practice' ? '練習' : '本番'} ${index + 1} / ${total}</p>
+      <h2 tabindex="-1" class="sr-only">回答</h2>
+      <p id="status" role="status">音声を聞いてください。</p>
       <div class="answers"><button id="no" class="answer" disabled>不適切 <kbd>F</kbd></button><button id="yes" class="answer" disabled>適切 <kbd>J</kbd></button></div>
       <div id="recovery" hidden><button class="primary" id="retry">音声をもう一度再生</button><button class="text-button" id="stop">ここで終了する</button></div>
-      <div id="feedback" role="status"></div><button class="primary" id="next" hidden>次へ →</button>
-      <p class="small">音声が終わったら、ボタンか F / J キーで回答してください。</p>`);
+      <div id="feedback" role="status"></div><button class="primary" id="next" hidden>次へ</button>`);
     $('no').onclick = () => respond('inappropriate');
     $('yes').onclick = () => respond('appropriate');
     $('retry').onclick = listen;
@@ -134,13 +126,11 @@
     if (document.hidden) { audioFailure(); return; }
     busy = true;
     $('recovery').hidden = true;
-    $('prompt').textContent = '英文を聞いてください';
-    $('status').textContent = '再生しています…';
+    $('status').textContent = '音声を聞いてください。';
     play(currentItem().audio_path, () => {
       busy = false;
       accepting = true;
-      $('prompt').textContent = '言葉の使い方は自然ですか？';
-      $('status').textContent = '「適切」か「不適切」を選んでください。';
+      $('status').textContent = '回答してください。';
       $('yes').disabled = false;
       $('no').disabled = false;
     }, audioFailure);
@@ -149,7 +139,6 @@
   function audioFailure() {
     busy = false;
     accepting = false;
-    $('prompt').textContent = '音声をもう一度聞いてください';
     $('status').textContent = '再生が中断されたか、音声を読み込めませんでした。通信環境を確認して再生してください。';
     $('recovery').hidden = false;
   }
@@ -178,7 +167,7 @@
     index += 1;
     if (phase === 'practice' && index === config.practice.length) {
       phase = 'ready';
-      screen(`<p class="eyebrow">READY</p><h2 tabindex="-1">次は、本番です。</h2><p class="lead">全部で${config.items.length}問です。練習と同じように回答してください。本番では、正解は表示されません。</p><button class="primary" id="main">本番を始める →</button>`);
+      screen(`<h2 tabindex="-1">本番</h2><p>全部で${config.items.length}問です。正解は表示されません。</p><button class="primary" id="main">本番を始める</button>`);
       $('main').onclick = () => {
         ordered = config.order(config.items);
         phase = 'main';
@@ -189,7 +178,7 @@
       result();
     } else if (phase === 'main' && index === 80 && ordered.length > 80) {
       phase = 'break';
-      screen(`<p class="eyebrow">TAKE A BREAK</p><h2 tabindex="-1">ここで、ひと休み。</h2><p class="lead">80 / ${ordered.length}問が終わりました。準備ができたら続けてください。</p><button class="primary" id="resume">続ける →</button><p class="small">このページは閉じずにお待ちください。</p>`);
+      screen(`<h2 tabindex="-1">休憩</h2><p>80 / ${ordered.length}問が終わりました。準備ができたら続けてください。</p><button class="primary" id="resume">続ける</button><p class="small">このページは閉じずにお待ちください。</p>`);
       $('resume').onclick = () => { phase = 'main'; trial(); };
     } else { trial(); }
   }
@@ -205,12 +194,22 @@
     const estimate = score.complete ? window.LJT_SHORT_CONVERSION.estimateToeicListening({ rawScore: score.referenceCorrect, nItems: score.referenceCount }) : { available: false };
     const cefr = estimate.available ? estimate.cefr.split('_')[0] : '—';
     const band = estimate.available && estimate.cefr.includes('_') ? (estimate.cefr.endsWith('lower') ? '下位帯' : '上位帯') : '';
-    screen(`<p class="eyebrow">YOUR RESULT</p><h2 tabindex="-1">${score.complete ? 'おつかれさまでした。' : 'ここまでの結果です。'}</h2>
-      <div class="result-grid"><div class="score-card"><p>${score.complete ? 'あなたの得点' : '回答済みの得点'}</p><div class="score" id="score">${score.correct}<span> / ${score.complete ? config.items.length : rows.length}</span></div><p>正答率 ${rows.length ? Math.round(score.correct / rows.length * 100) : 0}%${score.complete ? '' : `・全${config.items.length}問中${rows.length}問回答`}</p></div>
-      <div class="score-card cefr"><p>CEFR 参考目安</p><div class="score" id="cefr">${cefr}</div><p>${band || (estimate.available ? '既存の換算表に基づく目安' : '未完了のため換算なし')}</p></div></div>
+    screen(`<h2 tabindex="-1">${score.complete ? '結果' : '途中の結果'}</h2>
+      <dl class="results"><div><dt>得点</dt><dd id="score">${score.correct} / ${score.complete ? config.items.length : rows.length}</dd></div>
+      <div><dt>正答率</dt><dd>${rows.length ? Math.round(score.correct / rows.length * 100) : 0}%${score.complete ? '' : `（全${config.items.length}問中${rows.length}問回答）`}</dd></div>
+      <div><dt>CEFR 参考目安</dt><dd><span id="cefr">${cefr}</span>${band ? `（${band}）` : ''}${estimate.available ? '' : '（未完了のため換算なし）'}</dd></div></dl>
       ${config.long && estimate.available ? `<p class="basis">Short版と共通する40問：<strong>${score.referenceCorrect} / 40点</strong><br>CEFRは、この40問の得点をShort版の換算表に当てはめた参考値です。160問全体の得点からの換算ではありません。</p>` : ''}
       <p class="small">CEFRは言語の熟達度を表す国際的な尺度です。この表示はLJT-Sの既存換算表による参考目安で、公式のCEFR判定や英語4技能全体の評価ではありません。${config.long ? 'Long版は出題順・疲労の条件が異なり、Short版を単独で受けた場合との同等性は未確認です。' : ''}</p>
-      <button class="secondary" id="restart">最初の画面に戻る</button><p class="small">結果は保存・送信されません。このページを閉じると消えます。</p>`);
+      <button class="secondary" id="restart">最初に戻る</button><p class="small">結果は保存・送信されません。このページを閉じると消えます。</p>
+      <section class="references" aria-labelledby="references-title"><h3 id="references-title">LJTの原典論文</h3>
+        <p>Uchihara, T., Saito, K., Kurokawa, S., Takizawa, K., &amp; Suzukida, Y. (2025).
+        <a href="https://doi.org/10.1111/lang.12668" target="_blank" rel="noopener noreferrer">Declarative and automatized phonological vocabulary knowledge: Recognition, recall, lexicosemantic judgment, and listening-focused employability of second language words.</a>
+        <i>Language Learning, 75</i>(2), 458–492.</p>
+        <p>Saito, K., Uchihara, T., Takizawa, K., &amp; Suzukida, Y. (2025).
+        <a href="https://doi.org/10.1017/S027226312300044X" target="_blank" rel="noopener noreferrer">Individual differences in L2 listening proficiency revisited: Roles of form, meaning, and use aspects of phonological vocabulary knowledge.</a>
+        <i>Studies in Second Language Acquisition, 47</i>(1), 26–52.</p>
+        <p class="small">上記はLJTの開発・検証に関する論文です。このWeb版のCEFR換算を直接検証したものではありません。</p>
+      </section><footer class="credit">Web版作成：小室竜也 (Ryuya Komuro)｜東北大学 PD</footer>`);
     $('restart').onclick = () => { rows = []; ordered = []; index = 0; welcome(); };
   }
 

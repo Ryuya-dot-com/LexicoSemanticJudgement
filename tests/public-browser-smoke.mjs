@@ -158,6 +158,8 @@ try {
   await navigate(url);
   assert(await evaluate('document.querySelectorAll("input, textarea, form").length === 0'), 'unexpected identity form');
   const total = await evaluate('window.LJT_PUBLIC.items.length');
+  assert(await evaluate('document.querySelector("h1").textContent') === 'Lexicosemantic Judgement Test (LJT)', 'wrong title');
+  assert(await evaluate('!document.querySelector("header, footer, .credit, .references")'), 'credit or branding before results');
   const initialStorage = await evaluate('JSON.stringify([Object.keys(localStorage), Object.keys(sessionStorage)])');
   await send('Emulation.setDeviceMetricsOverride', {width:390,height:844,deviceScaleFactor:1,mobile:true}, sessionId);
   assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'mobile welcome overflows');
@@ -165,6 +167,8 @@ try {
   await waitUntil(() => evaluate('!document.querySelector("#practice").disabled'), 'sound check');
   await evaluate('document.querySelector("#practice").click(); document.dispatchEvent(new KeyboardEvent("keydown", {key:"j"}))');
   assert(await evaluate('document.querySelector("#next").hidden'), 'early response was accepted');
+  assert(await evaluate('!document.querySelector("header, footer, a, .credit, .references")'), 'trial contains branding, credit or links');
+  assert(!(await evaluate('document.body.innerText')).includes('言葉の使い方は自然ですか'), 'redundant trial question');
 
   let responses = 0, breaks = 0, retryTested = false;
   await waitUntil(async () => {
@@ -196,6 +200,8 @@ try {
     }
     return false;
   }, 'practice and main completion', 30000, 3);
+  assert(await evaluate('document.querySelector(".credit").textContent.includes("小室竜也 (Ryuya Komuro)｜東北大学 PD")'), 'result credit missing');
+  assert(await evaluate('document.querySelectorAll(".references a").length') === 2, 'original papers missing');
   assert(responses === total + 4, 'unexpected number of responses: ' + responses);
   assert(breaks === (total === 160 ? 1 : 0), 'break count');
   assert(retryTested, 'audio retry not exercised');

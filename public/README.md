@@ -7,7 +7,7 @@
 - 名前・ID・メールの入力、CSV/JSONのダウンロード、回答の外部送信はない。
 - 回答はメモリ内のみ。ページを閉じる・再読み込みすると消去される。ホスティングサービスによる通常のアクセス処理とは区別する。
 - 音声エラーは再試行または中断。エラー項目を誤答扱いで先送りしない。未完了時はCEFRを表示しない。
-- クレジット: 小室竜也 (Ryuya Komuro)｜東北大学 PD
+- クレジットは結果画面だけに表示: 小室竜也 (Ryuya Komuro)｜東北大学 PD
 - 既存のルートURL、研究用機能、音声原本、オフライン配布物は変更していない。
 
 ## 換算の範囲
@@ -35,3 +35,12 @@ node tests/public-browser-smoke.mjs
 - 元音声208ファイル（Short 44 / Long 164）をffmpegで全件デコードし、エラーなし。
 - macOS Chromeで両版の実画面、Short版の音声チェックの再生完了を確認。iPhone / Androidの実機は未確認。
 - 研究用ロジック・オフラインZIPは無変更のため、既存の全体検証・ZIP再生成は行っていない。
+
+## 画面と原典（2026-11-11の追加指示）
+
+冒頭は `Lexicosemantic Judgement Test (LJT)`。全体をモノクロにし、解答画面からタイトル・バージョン・クレジット・他版リンク・装飾を除去。結果画面だけにWeb版作成者と下記原典を掲載する。論文は巻号確定後の刊行年（2025）で記載し、オンライン先行公開年（Uchihara: 2024、Saito: 2023）と区別した。
+
+- Uchihara, T., Saito, K., Kurokawa, S., Takizawa, K., & Suzukida, Y. (2025). Declarative and automatized phonological vocabulary knowledge: Recognition, recall, lexicosemantic judgment, and listening-focused employability of second language words. *Language Learning, 75*(2), 458–492. https://doi.org/10.1111/lang.12668
+- Saito, K., Uchihara, T., Takizawa, K., & Suzukida, Y. (2025). Individual differences in L2 listening proficiency revisited: Roles of form, meaning, and use aspects of phonological vocabulary knowledge. *Studies in Second Language Acquisition, 47*(1), 26–52. https://doi.org/10.1017/S027226312300044X
+
+原典はLJTの開発・検証に関する文献として示し、このWeb版のCEFR換算の直接的な検証論文とは位置づけない。書誌情報は出版社のページで確認。Uchihara論文の2026年訂正は所属情報の補足であり、分析や採点の訂正ではない。
